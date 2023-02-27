@@ -1,7 +1,7 @@
 
 use std::{
     future::Future,
-    sync::Mutex};
+    sync::Mutex, thread::JoinHandle};
 use tokio;
 //extern crate lazy_static;
 use lazy_static::lazy_static;
@@ -72,4 +72,16 @@ where F: Future + Send + 'static,
             RT.spawn(action)
         }
     }
+}
+
+pub fn handle_await<F>(join_handle: tokio::task::JoinHandle<F>) -> Result<F, tokio::task::JoinError> {
+    run_async(async {
+        match join_handle.await {
+            Ok(result) => Ok(result),
+            Err(err) =>  {
+                println!("Failed with error {err:?}");
+                Err(err)
+            }
+        }    
+    })
 }
