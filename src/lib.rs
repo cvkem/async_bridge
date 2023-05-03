@@ -57,7 +57,11 @@ where F: Future {
     }
 }
 
-/// Check if an executor is available and run action on this executor, otherwise start a runtime to run and block_on the async action
+/// Check if an executor is available and run action on this executor, otherwise start a runtime to run and block_on the async action.
+/// A spawned process starts execution immediately on a separate (green) thread. 
+/// and a JoinHandle it returned to the calling thread such that this thread can continue execution.
+/// When the result of the spawned process is needed the 'handle_await' can be applied to retrieve either
+/// a result or an error from the JoinHandle.
 pub fn spawn_async<F>(action: F) -> tokio::task::JoinHandle<F::Output> 
 where F: Future + Send + 'static,
        F::Output: 'static + Send {
@@ -74,6 +78,7 @@ where F: Future + Send + 'static,
     }
 }
 
+/// Used to await a tokio JoinHandle in a symchroneous context.
 pub fn handle_await<F>(join_handle: tokio::task::JoinHandle<F>) -> Result<F, tokio::task::JoinError> {
     run_async(async {
         match join_handle.await {
