@@ -1,4 +1,4 @@
-use async_bridge::run_async;
+use async_bridge;
 use tokio::time::{sleep, Duration};
 
 async fn return_meaning() -> i32 {
@@ -9,10 +9,12 @@ async fn return_meaning() -> i32 {
 }
 
 
+/// example of building an async function used to await the spawned task.
 fn with_custom_await() {
     let join_handle = async_bridge::spawn_async(return_meaning());
 
-    // custom await function   
+    // custom await function
+    println!("NOTE: In custom code you create an async function that handles the output on the remote thread before returning");   
     async_bridge::run_async(async {
         println!("Now await the handle...");
         match join_handle.await {
@@ -23,14 +25,20 @@ fn with_custom_await() {
 
 }
 
+/// 
 fn async_await() {
     let join_handle = async_bridge::spawn_async(return_meaning());
 
-    println!("The taks has been spawned");
+    println!("The task has been spawned");
 
+    println!("{}\n\t{}\n\t{}\n\t{}",
+        "NOTE: when using async_bridge:",
+        "* You retrieve the result directly from the join-handle (no async function needed",
+        "* and you process the result on the current thread.",
+        "* in case of a failure this was already reported by async_bridge::handle_await!");
     match async_bridge::handle_await(join_handle) {
         Ok(result) =>  println!("The result returned by the join-handle is {result}"),
-        Err(err) => println!("Joining failed with error {err:?}")
+        Err(_err) => println!("Joining failed and the error has been reported already on the console!!! So I do not repeat it here.")
     }
 }
 
