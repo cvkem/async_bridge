@@ -22,3 +22,5 @@ Although this all sounds like significant advantages there are also a few downsi
 * Asynchronous programming in Rust had quite [a few pitfalls](./pitfalls_of_async.md) for me, and I guess I am not the only one.
 * Many libaries are written for synchronous programming, and these libraries do not blend easily with Asynchronous code.
 * Asynchronous Rust code is a bit more verbose as each future also needs to be awaited (immediately or later in time to extract the result.) 
+
+Part of the limitations mentioned here are [resolved by the async_bridge](./README.md).

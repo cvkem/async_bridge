@@ -73,5 +73,7 @@ In the examples folder of this project I have included three small examples of u
 2. Shows how async_bridge::run_async operates well in an synchronous context, where asymc-bridge start the Tokio only once and only when needed
 3. An example of a program that spawns asynchronous tasks in a synchronous program and later checks if the results are available. This can be used for example to interact with AWS-S3 as the primary library for that is asynchronous (which is the natural fit for this usecase).
 
+The examples 1 and 2 also show that the async runtime is not visible when you run code on a thread that has been spawned. So the async runtime is only visible on the thread were it was started, and on the threads that of thee threadpool of that runtime (in case of a multi-threaded runtime).
+
 
 
