@@ -9,14 +9,15 @@ async fn main() {
 
     perform_two_async_calls("MAIN");
 
-    println!("\nNow runnnin the same code on another thread:");
+    println!("\nNow runnning the same code on another thread:");
     thread::Builder::new()
         .name("Spawned".to_owned())
         .spawn(|| { perform_two_async_calls("SPAWNED thread");})
         .expect("Failed to start the Thread")
         .join()
         .expect("Failed to join");
-    println!("Please note that async_bridge could not find the main-runtime ")
+    println!("NOTE-1: The async_bridge could not find the main-runtime on this thread, so a second runtime is started.");
+    println!("NOTE-2: The second runtime is started once, so the same runtime is used for both invocations.");
 }
 
 

@@ -9,9 +9,10 @@ fn main() {
 
     perform_two_async_calls("MAIN");
 
-    println!("Please note that async_bridge did start a runtime.");
+    println!("NOTE-1: The async_bridge did start a runtime, as there is no Main-runtime of the program.");
+    println!("NOTE-2: The second call also runs via the Fall-back path (so Handle::try_current() does not detect the fall-back runtime).");
 
-    println!("\nNow runnnin the same code on another thread:");
+    println!("\nNow runnning the same code on another thread:");
     thread::Builder::new()
         .name("Spawned".to_owned())
         .spawn(|| { perform_two_async_calls("SPAWNED thread");})
@@ -19,7 +20,7 @@ fn main() {
         .join()
         .expect("Failed to join");
 
-        println!("Please note that async_bridge already started a runtime for the main thread so no new runtime started here.");
+        println!("NOTE-3: The async_bridge reuses the same Runtime even when called from another thread (as expected).");
 }
 
 

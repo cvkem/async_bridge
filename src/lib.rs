@@ -7,7 +7,7 @@ use std::{
 use tokio;
 use lazy_static::lazy_static;
 
-
+// Console logging is only for educative and analysis purposes. Default is to turn is off (false)
 static CONSOLE_LOGGING: AtomicBool = AtomicBool::new(false);
 
 pub fn set_console_logging(value: bool) {
@@ -31,7 +31,7 @@ struct RuntimeConfig {
 
 /// Configuration behind a mutex, but not really needed as the code that uses this data is executed only once. However, needed to please the compiler.
 const RT_CONFIG: Mutex<RuntimeConfig> = Mutex::new(RuntimeConfig{
-            num_worker_threads: 4, 
+            num_worker_threads: 8, // Using more threads than cores, as some threads will get locked.
             num_blocking: 3});
 
 lazy_static! {
@@ -66,14 +66,14 @@ where F: Future {
         Ok(handle) => {
             let handle = handle.clone();
             if CONSOLE_LOGGING.load(Ordering::Relaxed) {
-                report_threads(handle.clone(), "run_async");
+                report_threads(handle.clone(), "run_async (Main-handle detected)");
             } 
             tokio::task::block_in_place(move || handle.block_on(action))
         }
         // No async runtime, so create one and launch this task on it 
         Err(_err) => {
             if CONSOLE_LOGGING.load(Ordering::Relaxed) {
-                report_threads(RT.handle().clone(), "run_async");
+                report_threads(RT.handle().clone(), "run_async (Fall-back to async_bridge-RT)");
             } 
             RT.block_on(action)
         }
@@ -110,11 +110,7 @@ where F: Future + Send + 'static,
 /// Used to await a tokio JoinHandle in a synchroneous context. In case of an error, the error is printed to the console.
 pub fn handle_await<F>(join_handle: tokio::task::JoinHandle<F>) -> Result<F, tokio::task::JoinError> {
     if CONSOLE_LOGGING.load(Ordering::Relaxed) {
-        let handle = match tokio::runtime::Handle::try_current()  {
-            Ok(handle) => handle.clone(),
-            Err(_err) => RT.handle().clone()
-        };
-        report_threads(handle, "handle_await");
+        report_threads(get_runtime_handle(), "handle_await");
     } 
     run_async(async {
         match join_handle.await {
@@ -125,4 +121,14 @@ pub fn handle_await<F>(join_handle: tokio::task::JoinHandle<F>) -> Result<F, tok
             }
         }    
     })
+}
+
+
+/// Return a clone of the handle to the current Async-runtime. 
+/// This can be used to build a closure that can return to asynchronnous code from a synchronous context
+pub fn get_runtime_handle() -> tokio::runtime::Handle {
+    match tokio::runtime::Handle::try_current()  {
+        Ok(handle) => handle.clone(),
+        Err(_err) => RT.handle().clone()
+    }
 }
