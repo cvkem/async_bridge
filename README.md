@@ -47,7 +47,8 @@ The async bridge is used to run asynchronous tasks in a synchronous context effi
 The library consists of three functions that all should be run in a synchronous context (process):
 * run_async: run a future (asynchronous task) to completion and return the result of that task.
 * spawn_async: run a future on a diffent thread and return a JoinHandle.
-* handle_await: Use to await a JoinHandle as returned by 'spawn_async'.
+* handle_await: Used to await a JoinHandle as returned by 'spawn_async'.
+* execute_action: Can be used to build a closure that captures the async runtime such that it can execute asynchronous code in a synchronous context.
 
 ### Usecases for the async_bridge
 The use-cases of async_bridge are (in my opinion):
@@ -69,9 +70,10 @@ The advantages of the async_bridge over the standard patterns:
 
 ### The included examples
 In the examples folder of this project I have included three small examples of using the async_bridge:
-1. Shows how you can jump back to asynchronous mode (execute asynchronous tasks) when you are in the middle of a piece of synchronous code.
-2. Shows how async_bridge::run_async operates well in an synchronous context, where asymc-bridge start the Tokio only once and only when needed
-3. An example of a program that spawns asynchronous tasks in a synchronous program and later checks if the results are available. This can be used for example to interact with AWS-S3 as the primary library for that is asynchronous (which is the natural fit for this usecase).
+1. **main_async**: Shows how you can jump back to asynchronous mode (execute asynchronous tasks) when you are one of more layers deep in synchronous code. The async runtime of your main is used to execute the task (unless you are on a spawned thread.)  
+2. **main_sync**: Shows how async_bridge::run_async operates well in an synchronous context, where async_bridge starts the Tokio async runtime exactly once and only when needed
+3. **spawn**:An example of a program that spawns asynchronous tasks in a synchronous program and later checks if the results are available. This can be used for example to interact with AWS-S3 as the primary library for that is asynchronous (which is the natural fit for this usecase).
+4. **pass_closure**: shows how a clojure containing asynchronous can be build that will be executed later in a synchronous context. The closure can take parameters from its creator and also get parameters when called. 
 
 The examples 1 and 2 also show that the async runtime is not visible when you run code on a thread that has been spawned. So the async runtime is only visible on the thread were it was started, and on the threads that of thee threadpool of that runtime (in case of a multi-threaded runtime).
 

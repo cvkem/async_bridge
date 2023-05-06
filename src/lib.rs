@@ -126,9 +126,18 @@ pub fn handle_await<F>(join_handle: tokio::task::JoinHandle<F>) -> Result<F, tok
 
 /// Return a clone of the handle to the current Async-runtime. 
 /// This can be used to build a closure that can return to asynchronnous code from a synchronous context
-pub fn get_runtime_handle() -> tokio::runtime::Handle {
+fn get_runtime_handle() -> tokio::runtime::Handle {
     match tokio::runtime::Handle::try_current()  {
         Ok(handle) => handle.clone(),
         Err(_err) => RT.handle().clone()
     }
+}
+
+
+
+pub fn execute_action<F>(action: F) -> F::Output 
+where F: Future + Send + 'static,
+       F::Output: 'static + Send {
+        // run the code in place of the current thread. Other tasks will be moved out.
+        tokio::task::block_in_place(move || get_runtime_handle().block_on(action))
 }
